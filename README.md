@@ -1,4 +1,4 @@
-# FreeSurfer in Docker Alpine
+# FreeSurfer in Docker Debian
 
 - https://github.com/freesurfer/freesurfer
 - https://surfer.nmr.mgh.harvard.edu/fswiki/BuildGuide

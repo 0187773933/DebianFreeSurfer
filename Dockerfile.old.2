@@ -1,0 +1,233 @@
+# Docker file for building FreeSurfer from source on Ubuntu 24.04
+FROM ubuntu:24.04
+
+# Prevent interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Enable required repositories and update
+RUN apt-get update && \
+    apt-get install -y software-properties-common && \
+    add-apt-repository universe && \
+    apt-get update
+
+# Install build dependencies
+RUN apt-get install -y \
+    # Basic utilities
+    git \
+    wget \
+    tcsh \
+    xxd \
+    build-essential \
+    vim-common \
+    sudo \
+    # Compilers and build tools
+    gcc \
+    g++ \
+    gfortran \
+    make \
+    cmake \
+    # Math libraries
+    libblas-dev \
+    liblapack-dev \
+    # Compression libraries
+    zlib1g-dev \
+    # X11 and OpenGL libraries
+    libxmu-dev \
+    libxmu-headers \
+    libxi-dev \
+    libxt-dev \
+    libx11-dev \
+    libglu1-mesa-dev \
+    libgl1 \
+    libglx0 \
+    libxext6 \
+    libsm6 \
+    libxrender1 \
+    libxft-dev \
+    libxss-dev \
+    # Python development
+    python3-dev \
+    # Additional dependencies
+    bc \
+    libgomp1 \
+    perl \
+    tar \
+    # VTK and ITK dependencies
+    libglu1-mesa-dev \
+    libglvnd-dev \
+    libgl1-mesa-dev \
+    libvtk9-dev \
+    libinsighttoolkit5-dev \
+    qtbase5-dev \
+    libqt5x11extras5-dev \
+    libopencv-dev \
+    # libpetsc-dev \
+    libann-dev \
+    libx11-dev \
+    libxmu-dev \
+    libxi-dev \
+    libx11-xcb-dev \
+    libxcb-dri3-dev \
+    libxcb-icccm4-dev \
+    libxcb-image0-dev \
+    libxcb-keysyms1-dev \
+    libxcb-randr0-dev \
+    libxcb-render-util0-dev \
+    libxcb-shape0-dev \
+    libxcb-xfixes0-dev \
+    libxcb-xinerama0-dev \
+    libxcb-xkb-dev \
+    libxkbcommon-x11-dev \
+    libvtk9-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+
+RUN if [ ! -f /usr/bin/cmake ] || \
+   [ "$(cmake --version | head -n1 | awk '{print $3}')" \< "3.5" ]; then \
+   echo "Installing cmake 3.31.4"; \
+   apt-get update && apt-get install -y build-essential libssl-dev wget && \
+   wget https://github.com/Kitware/CMake/releases/download/v3.31.4/cmake-3.31.4.tar.gz && \
+   tar -xzvf cmake-3.31.4.tar.gz && \
+   cd cmake-3.31.4 && \
+   ./bootstrap --parallel="$(nproc)" && \
+   make -j"$(nproc)" && \
+   make install && \
+   cd .. && rm -rf cmake-3.31.4 cmake-3.31.4.tar.gz; \
+fi
+
+RUN cd /home/ubuntu && \
+    git clone --depth 1 https://github.com/Kitware/VTK.git && \
+    cd VTK && \
+    mkdir build && \
+    cd build && \
+    cmake \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DVTK_GROUP_ENABLE_Qt=NO \
+        -DVTK_GROUP_ENABLE_Imaging=YES \
+        -DVTK_GROUP_ENABLE_Rendering=YES \
+        -DVTK_GROUP_ENABLE_StandAlone=YES \
+        -DVTK_GROUP_ENABLE_Views=YES \
+        -DBUILD_SHARED_LIBS=ON \
+        -DCMAKE_INSTALL_PREFIX=/usr/local \
+        .. && \
+    make -j"$(nproc)" && \
+    sudo make install && \
+    sudo ldconfig
+
+# Create build user and directory
+ENV USERNAME=morphs
+RUN useradd -m ${USERNAME} && \
+    echo "${USERNAME} ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+
+USER ${USERNAME}
+WORKDIR /home/${USERNAME}
+
+# # Clone and build FreeSurfer
+RUN git clone https://github.com/freesurfer/freesurfer.git
+
+ENV X11_ROOT=/usr/lib/x86_64-linux-gnu
+
+USER root
+RUN cd /home/ubuntu && \
+    git clone --depth 1 https://github.com/InsightSoftwareConsortium/ITK.git && \
+    cd ITK && \
+    mkdir build && \
+    cd build && \
+    cmake \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DBUILD_SHARED_LIBS=ON \
+        -DCMAKE_INSTALL_PREFIX=/usr/local \
+        -DITK_USE_SYSTEM_VTK=ON \
+        -DVTK_DIR=/usr/local/lib/cmake/vtk-9.4 \
+        .. && \
+    make -j"$(nproc)" && \
+    sudo make install && \
+    sudo ldconfig
+USER ${USERNAME}
+WORKDIR /home/${USERNAME}
+
+RUN ITK_VERSION=$(ls /usr/local/lib/cmake | grep ITK- | head -n 1)
+RUN echo "ITK version: ${ITK_VERSION}"
+
+USER root
+RUN apt-get update && apt-get install -y software-properties-common gnupg && \
+    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3B4FE6ACC0B21F32 && \
+    add-apt-repository "deb http://archive.ubuntu.com/ubuntu bionic main universe" && \
+    apt-get update && apt-get install -y \
+    gcc-5 g++-11 gfortran-11 && \
+    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100 && \
+    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 100 && \
+    update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-11 100
+USER ${USERNAME}
+WORKDIR /home/${USERNAME}
+
+RUN sudo apt-get remove libvtk9-dev libinsighttoolkit5-dev -y
+
+RUN sudo apt-get install -y \
+    libx11-dev \
+    libxmu-dev \
+    libxi-dev \
+    libxt-dev \
+    libgl1-mesa-dev \
+    libglu1-mesa-dev \
+    libgomp1 \
+    tcsh \
+    bc \
+    libjpeg-dev
+
+WORKDIR /home/${USERNAME}
+
+RUN cd freesurfer && \
+    rm CMakeCache.txt || echo "" && \
+    mkdir -p /home/${USERNAME}/freesurfer/install/python/bin && \
+    sed -i '/SetColorSpaceToHSVNoWrap/d' vtkutils/vtkRGBATransferFunction.h && \
+    sed -i '/public:/a\  void SetColorSpaceToHSVNoWrap() { this->ColorSpace = VTK_CTF_HSV; }' vtkutils/vtkRGBATransferFunction.h && \
+    sed -i '350i\  PointsContainer::Pointer positions;\n  double costAtBestPosition;\n  AtlasPositionGradientContainerType::Pointer gradientAtBestPosition;\n' gems/kvlAtlasMeshDeformationOptimizer.cxx && \
+    sed -i '357c\  bestPosition = positions;' gems/kvlAtlasMeshDeformationOptimizer.cxx && \
+    sed -i '358c\  bestCost = costAtBestPosition;' gems/kvlAtlasMeshDeformationOptimizer.cxx && \
+    sed -i '359c\  bestGradient = gradientAtBestPosition;' gems/kvlAtlasMeshDeformationOptimizer.cxx && \
+    sed -i '360c\  costAtMinimum = costAtBestPosition;' gems/kvlAtlasMeshDeformationOptimizer.cxx && \
+    ln -sf /usr/bin/python3 /home/${USERNAME}/freesurfer/install/python/bin/python3 && \
+    mkdir build && cd build && \
+    cmake \
+        -DCMAKE_INSTALL_PREFIX=/home/${USERNAME}/freesurfer/install \
+        -DMINIMAL=ON \
+        -DCMAKE_CXX_STANDARD=17 \
+        -DVTK_DIR=/usr/local/lib/cmake/vtk-9.4 \
+        -DITK_DIR=/usr/local/lib/cmake/ITK-6.0 \
+        -DCMAKE_CXX_FLAGS="-I/usr/local/include/vtk-9.4 -Wno-error -Wno-error=pedantic -Wno-error=format-overflow -Wno-error=deprecated-declarations -fpermissive -Wno-deprecated -Wno-reorder" \
+        -DCMAKE_C_FLAGS="-I/usr/local/include/vtk-9.4 -Wno-error" \
+        .. && \
+    make -j$(nproc) && \
+    make install && \
+    cd /home/${USERNAME}/freesurfer && rm -rf build
+
+ENTRYPOINT ["/bin/bash"]
+
+# # Set up environment variables
+# ENV FREESURFER_HOME=/home/${USERNAME}/freesurfer/install
+# ENV SUBJECTS_DIR=${FREESURFER_HOME}/subjects
+# ENV FUNCTIONALS_DIR=${FREESURFER_HOME}/sessions
+# ENV LOCAL_DIR=${FREESURFER_HOME}/local
+# ENV FSFAST_HOME=${FREESURFER_HOME}/fsfast
+# ENV FMRI_ANALYSIS_DIR=${FSFAST_HOME}
+# ENV MINC_BIN_DIR=${FREESURFER_HOME}/mni/bin
+# ENV MINC_LIB_DIR=${FREESURFER_HOME}/mni/lib
+# ENV MNI_DIR=${FREESURFER_HOME}/mni
+# ENV MNI_DATAPATH=${FREESURFER_HOME}/mni/data
+# ENV MNI_PERL5LIB=${FREESURFER_HOME}/mni/share/perl5
+# ENV PERL5LIB=${FREESURFER_HOME}/mni/share/perl5
+# ENV PATH=${FREESURFER_HOME}/bin:${FREESURFER_HOME}/fsfast/bin:${FREESURFER_HOME}/tktools:${MINC_BIN_DIR}:${PATH}
+
+# # Set default FreeSurfer options
+# ENV OS=Linux
+# ENV FS_OVERRIDE=0
+# ENV FIX_VERTEX_AREA=""
+# ENV FSF_OUTPUT_FORMAT=nii.gz
+
+# # Note about license
+# # Users need to register at https://surfer.nmr.mgh.harvard.edu/registration.html
+# # and copy their license file to $FREESURFER_HOME/.license
+# # COPY license.txt $FREESURFER_HOME/.license
+
+# ENTRYPOINT ["/bin/bash"]

@@ -1,0 +1,22 @@
+ sudo apk add --no-cache zlib-dev cmake gcc g++ lapack-dev blas-dev eigen-dev vtk-dev
+
+
+RUN cd /tmp/ITK && \
+    rm -f CMakeCache.txt && \
+    rm -rf CMakeFiles/ && \
+    mkdir build && \
+    cd build && \
+    cmake \
+        -DCMAKE_BUILD_TYPE=MinSizeRel \
+        -DBUILD_TESTING=OFF \
+        -DBUILD_EXAMPLES=OFF \
+        -DBUILD_SHARED_LIBS=OFF \
+        -DITK_USE_SYSTEM_LIBRARIES=ON \
+        -DITK_BUILD_DEFAULT_MODULES=ON \
+        -DITK_USE_SYSTEM_ZLIB=OFF \
+        --trace --trace-expand \
+        .. && \
+    make -j$(nproc) VERBOSE=1 && \
+    make install && \
+    cd ../.. && \
+    rm -rf ITK

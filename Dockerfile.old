@@ -1,0 +1,178 @@
+# Use Ubuntu 24.04 as the base image
+FROM ubuntu:24.04
+
+# Prevent interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Update package lists and install essential packages
+RUN apt-get update && apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends \
+        software-properties-common \
+        build-essential \
+        gfortran \
+        sudo \
+        ca-certificates \
+        wget \
+        git \
+        bash \
+        xauth \
+        x11-apps \
+        cmake \
+        liblapack-dev \
+        libblas-dev \
+        zlib1g-dev \
+        libx11-dev \
+        libxmu-dev \
+        libxi-dev \
+        libxt-dev \
+        libglu-dev \
+        libgl1-mesa-dev \
+        google-mock \
+        libgtest-dev \
+        qtbase5-dev \
+        qttools5-dev-tools \
+        python3 \
+        python3-dev \
+        python3-pip \
+        vim \
+        tzdata \
+        libinsighttoolkit5-dev \
+        libvtk9-dev \
+        petsc-dev \
+        libann-dev \
+        libbz2-dev \
+        libncurses5-dev \
+        libncursesw5-dev \
+        libffi-dev \
+        libreadline-dev \
+        libsqlite3-dev \
+        libssl-dev \
+        libgdbm-dev \
+        libgdbm-compat-dev \
+        tk-dev \
+        libqt5opengl5-dev \
+        # Removed libgdcm-dev to prevent conflicts with source build
+        file \
+        vim-common \
+        # pyenv dependencies
+        make \
+        curl \
+        llvm \
+        xz-utils \
+        libxml2-dev \
+        libxmlsec1-dev \
+        liblzma-dev \
+        libeigen3-dev \
+        libglew-dev \
+        libopengl-dev \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Create a non-root user with sudo privileges
+ARG USERNAME=morphs
+RUN useradd -ms /bin/bash "${USERNAME}" && \
+    echo "${USERNAME} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+# Switch to the non-root user
+USER "${USERNAME}"
+WORKDIR /home/${USERNAME}
+
+# Install pyenv for managing Python versions
+ENV PYENV_ROOT=/home/${USERNAME}/.pyenv
+ENV PATH=/home/${USERNAME}/.pyenv/shims:/home/${USERNAME}/.pyenv/bin:$PATH
+ENV PYTHON_CONFIGURE_OPTS="--enable-shared"
+ENV CMAKE_POLICY_DEFAULT_CMP0022=NEW
+
+# Clone pyenv repository
+RUN git clone https://github.com/pyenv/pyenv.git ~/.pyenv
+
+# Initialize pyenv by updating .bashrc
+RUN echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc && \
+    echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc && \
+    echo 'eval "$(pyenv init --path)"' >> ~/.bashrc && \
+    echo 'eval "$(pyenv init -)"' >> ~/.bashrc
+
+# Install the desired Python version using pyenv
+ARG PYTHON_VERSION=3.11.2
+RUN bash -c "source ~/.bashrc && \
+    pyenv install $PYTHON_VERSION && \
+    pyenv global $PYTHON_VERSION && \
+    pyenv rehash"
+
+# Ensure the new Python version is in the PATH
+ENV PATH="/home/${USERNAME}/.pyenv/shims:/home/${USERNAME}/.pyenv/bin:${PATH}"
+
+# Verify Python and CMake versions
+RUN python --version && cmake --version
+
+# Clone, build, and install GDCM from source to ensure gdcm-tools are available
+RUN git clone https://github.com/malaterre/GDCM.git && \
+    cd GDCM && \
+    mkdir build && cd build && \
+    cmake -D BUILD_SHARED_LIBS=ON -D GDCM_BUILD_APPLICATIONS=ON .. && \
+    make -j"$(nproc)" && \
+    sudo make install && \
+    sudo ldconfig && \
+    # Clean up GDCM build files
+    cd ../.. && rm -rf GDCM
+
+# Create symbolic links for GDCM tools
+RUN sudo ln -s /usr/local/bin/gdcmxml /usr/bin/gdcmxml && \
+    sudo ln -s /usr/local/bin/gdcmpap3 /usr/bin/gdcmpap3 && \
+    sudo ln -s /usr/local/bin/gdcmpdf /usr/bin/gdcmpdf && \
+    sudo ln -s /usr/local/bin/gdcmdump /usr/bin/gdcmdump && \
+    sudo ln -s /usr/local/bin/gdcmdiff /usr/bin/gdcmdiff && \
+    sudo ln -s /usr/local/bin/gdcmraw /usr/bin/gdcmraw && \
+    sudo ln -s /usr/local/bin/gdcmscanner /usr/bin/gdcmscanner && \
+    sudo ln -s /usr/local/bin/gdcmanon /usr/bin/gdcmanon && \
+    sudo ln -s /usr/local/bin/gdcmclean /usr/bin/gdcmclean && \
+    sudo ln -s /usr/local/bin/gdcmgendir /usr/bin/gdcmgendir && \
+    sudo ln -s /usr/local/bin/gdcmimg /usr/bin/gdcmimg && \
+    sudo ln -s /usr/local/bin/gdcmconv /usr/bin/gdcmconv && \
+    sudo ln -s /usr/local/bin/gdcmtar /usr/bin/gdcmtar && \
+    sudo ln -s /usr/local/bin/gdcminfo /usr/bin/gdcminfo && \
+    sudo ln -s /usr/local/bin/gdcmscu /usr/bin/gdcmscu
+
+# Set environment variables for OpenCV and ANN to help CMake find them
+ENV OpenCV_DIR=/usr/lib/cmake/opencv4
+ENV ANN_DIR=/usr/lib
+
+
+RUN wget https://github.com/Kitware/CMake/releases/download/v3.31.4/cmake-3.31.4.tar.gz && \
+    tar -xzvf cmake-3.31.4.tar.gz && \
+    cd cmake-3.31.4 && \
+    ./bootstrap && \
+    make -j"$(nproc)" && \
+    sudo make install && \
+    cd .. && rm -rf cmake-3.31.4 cmake-3.31.4.tar.gz
+
+# Clone and build FreeSurfer from a stable release
+RUN git clone https://github.com/freesurfer/freesurfer.git && \
+    cd freesurfer && \
+    sed -i '522s/symlink/symlink_corrected/' CMakeLists.txt && \
+    mkdir build && cd build && \
+    cmake \
+        -DCMAKE_INSTALL_PREFIX=/home/${USERNAME}/freesurfer/install \
+        -DMINIMAL=ON \
+        -DUSE_JNIFTI=OFF \
+        -DBUILD_JNIFTI=OFF \
+        -DBUILD_GUIS=OFF \
+        -DBUILD_FORTRAN=OFF \
+        -DINTEGRATE_SAMSEG=OFF \
+        -DDISTRIBUTE_FSPYTHON=OFF \
+        -DINSTALL_PYTHON_DEPENDENCIES=OFF \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_POLICY_DEFAULT_CMP0022=NEW \
+        -DOpenCV_DIR=/usr/lib/cmake/opencv4 \
+        -DANN_DIR=/usr/lib \
+        -DGDcm_DIR=/usr/local/lib/cmake/gdcm-3.0 \
+        .. && \
+    make -j"$(nproc)" && \
+    sudo make install && \
+    cd /home/${USERNAME}/freesurfer && rm -rf build
+
+# Set environment variables for FreeSurfer
+ENV FREESURFER_HOME=/home/${USERNAME}/freesurfer/install
+ENV PATH=$FREESURFER_HOME/bin:/usr/local/bin:$PATH
+
+# Set the entrypoint to bash
+ENTRYPOINT ["/bin/bash"]

@@ -1,0 +1,2372 @@
+Sending build context to Docker daemon  23.55kB
+Step 1/18 : FROM ubuntu:24.04
+ ---> b1d9df8ab815
+Step 2/18 : ENV DEBIAN_FRONTEND=noninteractive
+ ---> Using cache
+ ---> 3739115a0018
+Step 3/18 : RUN apt-get update &&     apt-get install -y software-properties-common &&     add-apt-repository universe &&     apt-get update
+ ---> Using cache
+ ---> f260025e2e37
+Step 4/18 : RUN apt-get install -y     git     wget     tcsh     xxd     build-essential     vim-common     sudo     gcc     g++     gfortran     make     cmake     libblas-dev     liblapack-dev     zlib1g-dev     libxmu-dev     libxmu-headers     libxi-dev     libxt-dev     libx11-dev     libglu1-mesa-dev     libgl1     libglx0     libxext6     libsm6     libxrender1     libxft-dev     libxss-dev     python3-dev     bc     libgomp1     perl     tar     libglu1-mesa-dev     libglvnd-dev     libgl1-mesa-dev     libvtk9-dev     libinsighttoolkit5-dev     qtbase5-dev     libqt5x11extras5-dev     libopencv-dev     libann-dev     libx11-dev     libxmu-dev     libxi-dev     libx11-xcb-dev     libxcb-dri3-dev     libxcb-icccm4-dev     libxcb-image0-dev     libxcb-keysyms1-dev     libxcb-randr0-dev     libxcb-render-util0-dev     libxcb-shape0-dev     libxcb-xfixes0-dev     libxcb-xinerama0-dev     libxcb-xkb-dev     libxkbcommon-x11-dev     libvtk9-dev     && rm -rf /var/lib/apt/lists/*
+ ---> Using cache
+ ---> 0074b9639ebb
+Step 5/18 : RUN if [ ! -f /usr/bin/cmake ] ||    [ "$(cmake --version | head -n1 | awk '{print $3}')" \< "3.5" ]; then    echo "Installing cmake 3.31.4";    apt-get update && apt-get install -y build-essential libssl-dev wget &&    wget https://github.com/Kitware/CMake/releases/download/v3.31.4/cmake-3.31.4.tar.gz &&    tar -xzvf cmake-3.31.4.tar.gz &&    cd cmake-3.31.4 &&    ./bootstrap --parallel="$(nproc)" &&    make -j"$(nproc)" &&    make install &&    cd .. && rm -rf cmake-3.31.4 cmake-3.31.4.tar.gz; fi
+ ---> Using cache
+ ---> 87bbf4b1b84e
+Step 6/18 : RUN cd /home/ubuntu &&     git clone --depth 1 https://github.com/Kitware/VTK.git &&     cd VTK &&     mkdir build &&     cd build &&     cmake         -DCMAKE_BUILD_TYPE=Release         -DVTK_GROUP_ENABLE_Qt=NO         -DVTK_GROUP_ENABLE_Imaging=YES         -DVTK_GROUP_ENABLE_Rendering=YES         -DVTK_GROUP_ENABLE_StandAlone=YES         -DVTK_GROUP_ENABLE_Views=YES         -DBUILD_SHARED_LIBS=ON         -DCMAKE_INSTALL_PREFIX=/usr/local         .. &&     make -j"$(nproc)" &&     sudo make install &&     sudo ldconfig
+ ---> Using cache
+ ---> 1cb02c2f9614
+Step 7/18 : ENV USERNAME=morphs
+ ---> Using cache
+ ---> 8ea44a4c8314
+Step 8/18 : RUN useradd -m ${USERNAME} &&     echo "${USERNAME} ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+ ---> Using cache
+ ---> df6780955849
+Step 9/18 : USER ${USERNAME}
+ ---> Using cache
+ ---> a9dab6766347
+Step 10/18 : WORKDIR /home/${USERNAME}
+ ---> Using cache
+ ---> 7223cd5b1495
+Step 11/18 : RUN git clone https://github.com/freesurfer/freesurfer.git
+ ---> Using cache
+ ---> 13ebef704ea4
+Step 12/18 : ENV X11_ROOT=/usr/lib/x86_64-linux-gnu
+ ---> Using cache
+ ---> 354e3413a773
+Step 13/18 : USER root
+ ---> Using cache
+ ---> 83fc33b0d32e
+Step 14/18 : RUN apt-get update && apt-get install -y software-properties-common gnupg &&     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3B4FE6ACC0B21F32 &&     add-apt-repository "deb http://archive.ubuntu.com/ubuntu bionic main universe" &&     apt-get update && apt-get install -y     gcc-5 g++-5 gfortran-5 &&     update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 50 &&     update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 50 &&     update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-5 50
+ ---> Using cache
+ ---> ace3c053b016
+Step 15/18 : USER ${USERNAME}
+ ---> Using cache
+ ---> 84299e17c7d7
+Step 16/18 : WORKDIR /home/${USERNAME}
+ ---> Using cache
+ ---> 58734d87fe7c
+Step 17/18 : RUN cd freesurfer &&     rm CMakeCache.txt || echo "" &&     mkdir -p /home/${USERNAME}/freesurfer/install/python/bin &&     ln -sf /usr/bin/python3 /home/${USERNAME}/freesurfer/install/python/bin/python3 &&     mkdir build && cd build &&     cmake         -DCMAKE_INSTALL_PREFIX=/home/${USERNAME}/freesurfer/install         -DMINIMAL=ON         .. &&     make -j"$(nproc)" &&     sudo make install &&     cd /home/${USERNAME}/freesurfer && rm -rf build
+ ---> Running in 38fd6391a42c
+[91mrm: cannot remove 'CMakeCache.txt': No such file or directory
+[0m
+[91mCMake Deprecation Warning at CMakeLists.txt:2 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+[0m-- The C compiler identification is GNU 5.5.0
+-- The CXX compiler identification is GNU 5.5.0
+-- The Fortran compiler identification is GNU 5.5.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Detecting Fortran compiler ABI info
+-- Detecting Fortran compiler ABI info - done
+-- Check for working Fortran compiler: /usr/bin/gfortran - skipped
+-- For HOST_OS= INTEGRATE_SAMSEG=OFF
+-- No build type selected - defaulting to Release
+[91mCMake Warning at CMakeLists.txt:151 (message):
+  FS_PACKAGES_DIR is NOT defined - build will be limited
+
+
+[0m-- Found ZLIB: /usr/lib/x86_64-linux-gnu/libz.so (found version "1.3")
+-- C/C++ standard set to 11 for Linux build on undefined with gcc/g++ version 5.5.0
+-- Could NOT find PETSC (missing: PETSC_INCLUDE_DIR) 
+-- Could NOT find ANN (missing: ANN_LIBRARIES) 
+-- Found OpenMP_C: -fopenmp (found version "4.0")
+-- Found OpenMP_CXX: -fopenmp (found version "4.0")
+-- Found OpenMP_Fortran: -fopenmp (found version "4.0")
+-- Found OpenMP: TRUE (found version "4.0")
+-- Could NOT find OpenCV (missing: OpenCV_INCLUDE_DIR) 
+-- OpenSSL_INCLUDE_DIR=/usr/include
+-- OpenSSL_LIB_DIR=/usr/lib/x86_64-linux-gnu
+[91mCMake Warning (dev) at CMakeLists.txt:288 (find_package):
+  Policy CMP0074 is not set: find_package uses <PackageName>_ROOT variables.
+  Run "cmake --help-policy CMP0074" for policy details.  Use the cmake_policy
+  command to set the policy and suppress this warning.
+
+  Environment variable X11_ROOT is set to:
+
+    /usr/lib/x86_64-linux-gnu
+
+  For compatibility, CMake is ignoring the variable.
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+[0m-- Found X11: /usr/include
+-- Found OpenGL: /usr/lib/x86_64-linux-gnu/libOpenGL.so
+-- For HOST_OS=undefined Qt5_DIR=/usr/lib/x86_64-linux-gnu/cmake/Qt5
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE
+-- Found X11: /usr/include
+-- Looking for XOpenDisplay in /usr/lib/x86_64-linux-gnu/libX11.so;/usr/lib/x86_64-linux-gnu/libXext.so
+-- Looking for XOpenDisplay in /usr/lib/x86_64-linux-gnu/libX11.so;/usr/lib/x86_64-linux-gnu/libXext.so - found
+-- Looking for gethostbyname
+-- Looking for gethostbyname - found
+-- Looking for connect
+-- Looking for connect - found
+-- Looking for remove
+-- Looking for remove - found
+-- Looking for shmat
+-- Looking for shmat - found
+-- Looking for IceConnectionNumber in ICE
+-- Looking for IceConnectionNumber in ICE - found
+-- For HOST_OS=undefined VTK_DIR=/usr/local/lib/cmake/vtk-9.4
+-- The imported target "gdcmdump" references the file
+   "/usr/bin/gdcmdump"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/x86_64-linux-gnu/gdcm-3.0/GDCMTargets.cmake"
+but not all the files it references.
+
+-- The imported target "gdcmdiff" references the file
+   "/usr/bin/gdcmdiff"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/x86_64-linux-gnu/gdcm-3.0/GDCMTargets.cmake"
+but not all the files it references.
+
+-- The imported target "gdcmraw" references the file
+   "/usr/bin/gdcmraw"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/x86_64-linux-gnu/gdcm-3.0/GDCMTargets.cmake"
+but not all the files it references.
+
+-- The imported target "gdcmscanner" references the file
+   "/usr/bin/gdcmscanner"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/x86_64-linux-gnu/gdcm-3.0/GDCMTargets.cmake"
+but not all the files it references.
+
+-- The imported target "gdcmanon" references the file
+   "/usr/bin/gdcmanon"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/x86_64-linux-gnu/gdcm-3.0/GDCMTargets.cmake"
+but not all the files it references.
+
+-- The imported target "gdcmclean" references the file
+   "/usr/bin/gdcmclean"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/x86_64-linux-gnu/gdcm-3.0/GDCMTargets.cmake"
+but not all the files it references.
+
+-- The imported target "gdcmgendir" references the file
+   "/usr/bin/gdcmgendir"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/x86_64-linux-gnu/gdcm-3.0/GDCMTargets.cmake"
+but not all the files it references.
+
+-- The imported target "gdcmimg" references the file
+   "/usr/bin/gdcmimg"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/x86_64-linux-gnu/gdcm-3.0/GDCMTargets.cmake"
+but not all the files it references.
+
+-- The imported target "gdcmconv" references the file
+   "/usr/bin/gdcmconv"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/x86_64-linux-gnu/gdcm-3.0/GDCMTargets.cmake"
+but not all the files it references.
+
+-- The imported target "gdcmtar" references the file
+   "/usr/bin/gdcmtar"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/x86_64-linux-gnu/gdcm-3.0/GDCMTargets.cmake"
+but not all the files it references.
+
+-- The imported target "gdcminfo" references the file
+   "/usr/bin/gdcminfo"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/x86_64-linux-gnu/gdcm-3.0/GDCMTargets.cmake"
+but not all the files it references.
+
+-- The imported target "gdcmscu" references the file
+   "/usr/bin/gdcmscu"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/x86_64-linux-gnu/gdcm-3.0/GDCMTargets.cmake"
+but not all the files it references.
+
+-- The imported target "gdcmxml" references the file
+   "/usr/bin/gdcmxml"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/x86_64-linux-gnu/gdcm-3.0/GDCMTargets.cmake"
+but not all the files it references.
+
+-- The imported target "gdcmpap3" references the file
+   "/usr/bin/gdcmpap3"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/x86_64-linux-gnu/gdcm-3.0/GDCMTargets.cmake"
+but not all the files it references.
+
+-- The imported target "gdcmpdf" references the file
+   "/usr/bin/gdcmpdf"
+but this file does not exist.  Possible reasons include:
+* The file was deleted, renamed, or moved to another location.
+* An install or uninstall procedure did not complete successfully.
+* The installation package was faulty and contained
+   "/usr/lib/x86_64-linux-gnu/gdcm-3.0/GDCMTargets.cmake"
+but not all the files it references.
+
+-- Found HDF5: /usr/lib/x86_64-linux-gnu/hdf5/serial/libhdf5_cpp.so;/usr/lib/x86_64-linux-gnu/hdf5/serial/libhdf5.so;/usr/lib/x86_64-linux-gnu/libcrypto.so;/usr/lib/x86_64-linux-gnu/libcurl.so;/usr/lib/x86_64-linux-gnu/libpthread.a;/usr/lib/x86_64-linux-gnu/libsz.so;/usr/lib/x86_64-linux-gnu/libz.so;/usr/lib/x86_64-linux-gnu/libdl.a;/usr/lib/x86_64-linux-gnu/libm.so;/usr/lib/x86_64-linux-gnu/hdf5/serial/libhdf5.so;/usr/lib/x86_64-linux-gnu/libcrypto.so;/usr/lib/x86_64-linux-gnu/libcurl.so;/usr/lib/x86_64-linux-gnu/libpthread.a;/usr/lib/x86_64-linux-gnu/libsz.so;/usr/lib/x86_64-linux-gnu/libz.so;/usr/lib/x86_64-linux-gnu/libdl.a;/usr/lib/x86_64-linux-gnu/libm.so (found version "1.10.10") found components: CXX C HL
+-- Some (but not all) targets in this export set were already defined.
+Targets Defined: VTK::vtkbuild, VTK::WrappingTools, VTK::WrapHierarchy, VTK::WrapPython, VTK::WrapPythonInit, VTK::ParseJava, VTK::WrapJava, VTK::kwiml, VTK::vtksys, VTK::utf8, VTK::loguru, VTK::CommonCore, VTK::CommonCore-private-kit-links, VTK::kissfft, VTK::CommonMath, VTK::CommonTransforms, VTK::exprtk, VTK::CommonMisc, VTK::CommonSystem, VTK::CommonSystem-private-kit-links, VTK::pugixml, VTK::CommonDataModel, VTK::CommonExecutionModel, VTK::FiltersCore, VTK::CommonColor, VTK::CommonComputationalGeometry, VTK::fmt, VTK::FiltersGeneral, VTK::FiltersGeometry, VTK::FiltersSources, VTK::RenderingCore, VTK::RenderingUI, VTK::RenderingOpenGL2, VTK::vtkProbeOpenGLVersion, VTK::zlib, VTK::freetype, VTK::RenderingFreeType, VTK::RenderingContext2D, VTK::ImagingCore, VTK::ImagingSources, VTK::FiltersHybrid, VTK::FiltersModeling, VTK::FiltersTexture, VTK::ImagingColor, VTK::ImagingGeneral, VTK::DICOMParser, VTK::jpeg, VTK::metaio, VTK::png, VTK::tiff, VTK::IOImage, VTK::ImagingHybrid, VTK::eigen, VTK::FiltersStatistics, VTK::doubleconversion, VTK::lz4, VTK::lzma, VTK::IOCore, VTK::IOLegacy, VTK::ParallelCore, VTK::diy2, VTK::expat, VTK::IOXMLParser, VTK::IOXML, VTK::ParallelDIY, VTK::FiltersExtraction, VTK::InteractionStyle, VTK::RenderingAnnotation, VTK::RenderingVolume, VTK::InteractionWidgets, VTK::ViewsCore, VTK::InfovisCore, VTK::ChartsCore, VTK::FiltersImaging, VTK::InfovisLayout, VTK::octree, VTK::RenderingLabel, VTK::ViewsInfovis, VTK::ViewsContext2D, VTK::TestingCore, VTK::TestingRendering, VTK::InteractionImage, VTK::ImagingMath, VTK::RenderingVolumeOpenGL2, VTK::RenderingLOD, VTK::RenderingImage, VTK::RenderingContextOpenGL2, VTK::hdf5, VTK::IOVeraOut, VTK::IOTecplotTable, VTK::IOSegY, VTK::IOParallelXML, VTK::netcdf, VTK::IONetCDF, VTK::IOPLY, VTK::IOMovie, VTK::ogg, VTK::theora, VTK::IOOggTheora, VTK::jsoncpp, VTK::IOGeometry, VTK::pegtl, VTK::IOMotionFX, VTK::FiltersParallel, VTK::IOParallel, VTK::IOMINC, VTK::IOLSDyna, VTK::libxml2, VTK::IOInfovis, VTK::IOImport, VTK::exodusII, VTK::cgns, VTK::ioss, VTK::IOIOSS, VTK::IOHDF, VTK::IOVideo, VTK::RenderingSceneGraph, VTK::RenderingVtkJS, VTK::libharu, VTK::IOExport, VTK::IOExportPDF, VTK::gl2ps, VTK::RenderingGL2PSOpenGL2, VTK::IOExportGL2PS, VTK::IOExodus, VTK::IOEnSight, VTK::IOCityGML, VTK::DomainsChemistry, VTK::IOChemistry, VTK::IOCONVERGECFD, VTK::IOCGNSReader, VTK::IOAsynchronous, VTK::FiltersAMR, VTK::IOAMR, VTK::ImagingStencil, VTK::ImagingStatistics, VTK::ImagingMorphological, VTK::ImagingFourier, VTK::sqlite, VTK::IOSQL, VTK::libproj, VTK::GeovisCore, VTK::FiltersTopology, VTK::FiltersSelection, VTK::FiltersSMP, VTK::FiltersProgrammable, VTK::FiltersPoints, VTK::verdict, VTK::FiltersVerdict, VTK::FiltersParallelImaging, VTK::FiltersHyperTree, VTK::FiltersGeneric, VTK::FiltersFlowPaths, VTK::DomainsChemistryOpenGL2
+Targets not yet defined: VTK::opengl, VTK::glew, VTK::mpi, VTK::ParallelMPI, VTK::GUISupportQt, VTK::ViewsQt, VTK::Java, VTK::RenderingTk, VTK::RenderingQt, VTK::Python, VTK::PythonUsed, VTK::WrappingPythonCore, VTK::PythonContext2D, VTK::PythonInterpreter, VTK::ParallelMPI4Py, VTK::IOParallelNetCDF, VTK::IOMPIParallel, VTK::IOMPIImage, VTK::FiltersPython, VTK::FiltersParallelVerdict, VTK::FiltersParallelGeometry, VTK::FiltersParallelMPI, VTK::DomainsParallelChemistry, VTK::CommonPython
+
+[91mCMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:69 (add_library):
+  add_library cannot create imported target "VTK::vtkbuild" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:72 (add_library):
+  add_library cannot create imported target "VTK::WrappingTools" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:79 (add_executable):
+  add_executable cannot create imported target "VTK::WrapHierarchy" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:82 (add_executable):
+  add_executable cannot create imported target "VTK::WrapPython" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:85 (add_executable):
+  add_executable cannot create imported target "VTK::WrapPythonInit" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:88 (add_executable):
+  add_executable cannot create imported target "VTK::ParseJava" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:91 (add_executable):
+  add_executable cannot create imported target "VTK::WrapJava" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+[0m[91mCMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:94 (add_library):
+  add_library cannot create imported target "VTK::kwiml" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:102 (add_library):
+  add_library cannot create imported target "VTK::vtksys" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:111 (add_library):
+  add_library cannot create imported target "VTK::utf8" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+[0m[91mCMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:118 (add_library):
+  add_library cannot create imported[0m[91m target "VTK::loguru" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:126 (add_library):
+  add_library cannot create imported target "VTK::CommonCore" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:135 (add_library):
+  add_library cannot create imported target
+  "VTK::CommonCore-private-kit-links" because another target with the same
+  name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:142 (add_library):
+  add_library cannot create imported target "VTK::kissfft" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:151 (add_library):
+  add_library cannot create imported[0m[91m target "VTK::CommonMath" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:159 (add_library):
+  add_library cannot create imported target "VTK::CommonTransforms" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:167 (add_library):
+  add_library cannot create imported target "VTK::exprtk" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:175 (add_library):
+  add_library cannot create imported target "VTK::CommonMisc" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:183 (add_library):
+  add_library cannot create imported target "VTK::CommonSystem" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:191 (add_library):
+  add_library cannot create imported[0m[91m target
+  "VTK::CommonSystem-private-kit-links" because another target with the same
+  name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:198 (add_library):
+  add_library cannot create imported target "VTK::pugixml" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:207 (add_library):
+  add_library cannot create imported target "VTK::CommonDataModel" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:215 (add_library):
+  add_library cannot create imported target "VTK::CommonExecutionModel"
+  because another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+[0m[91mCMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:223 (add_library):
+  add_library cannot create imported target "VTK::FiltersCore" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:231 (add_library):
+  add_library cannot create imported target "VTK::CommonColor" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:239 (add_library):
+  add_library cannot create imported target
+  "VTK::CommonComputationalGeometry" because another target with the same
+  name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:247 (add_library):
+  add_library cannot create imported target "VTK::fmt" because another target
+  with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:257 (add_library):
+  add_library cannot create imported target "VTK::FiltersGeneral" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:265 (add_library):
+  add_library cannot create imported target "VTK::FiltersGeometry" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:273 (add_library):
+  add_library cannot create imported target "VTK::FiltersSources" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+[0m[91mCMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:281 (add_library):
+  add_library cannot create imported target "VTK::RenderingCore" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:296 (add_library):
+  add_library cannot create imported target "VTK::RenderingUI" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+[0m[91mCMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:311 (add_library):
+  add_library cannot create imported target "VTK::RenderingOpenGL2" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:319 (add_executable):
+  add_executable cannot create imported target "VTK::vtkProbeOpenGLVersion"
+  because another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:322 (add_library):
+  add_library cannot create imported target "VTK::zlib" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:329 (add_library):
+  add_library cannot create imported target "VTK::freetype" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:336 (add_library):
+  add_library cannot create imported target "VTK::RenderingFreeType" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+[0m[91mCMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:344 (add_library):
+  add_library cannot create imported target "VTK::RenderingContext2D" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:352 (add_library):
+  add_library cannot create imported target "VTK::ImagingCore" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:360 (add_library):
+  add_library cannot create imported target "VTK::ImagingSources" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:368 (add_library):
+  add_library cannot create imported target "VTK::FiltersHybrid" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+[0m[91mCMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:376 (add_library):
+  add_library cannot create imported target "VTK::FiltersModeling" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:384 (add_library):
+  add_library cannot create imported target "VTK::FiltersTexture" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+[0m[91mCMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:392 (add_library):
+  add_library cannot create imported target "VTK::ImagingColor" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:400 (add_library):
+  add_library cannot create imported target "VTK::ImagingGeneral" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+[0m[91mCMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:408 (add_library):
+  add_library cannot create imported[0m[91m target "VTK::DICOMParser" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:416 (add_library):
+  add_library cannot create imported target "VTK::jpeg" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:423 (add_library):
+  add_library cannot create imported target "VTK::metaio" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:431 (add_library):
+  add_library cannot create imported target "VTK::png" because another target
+  with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:438 (add_library):
+  add_library cannot create imported target "VTK::tiff" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:445 (add_library):
+  add_library cannot create imported target "VTK::IOImage" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:453 (add_library):
+  add_library cannot create imported target "VTK::ImagingHybrid" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+[0m[91mCMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:461 (add_library):
+  add_library cannot create imported target "VTK::eigen" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:468 (add_library):
+  add_library cannot create imported target "VTK::FiltersStatistics" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:476 (add_library):
+  add_library cannot create imported target "VTK::doubleconversion" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:483 (add_library):
+  add_library cannot create imported target "VTK::lz4" because another target
+  with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:490 (add_library):
+  add_library cannot create imported target "VTK::lzma" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:497 (add_library):
+  add_library cannot create imported target "VTK::IOCore" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:505 (add_library):
+  add_library cannot create imported target "VTK::IOLegacy" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:513 (add_library):
+  add_library cannot create imported target "VTK::ParallelCore" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:529 (add_library):
+  add_library cannot create imported target "VTK::diy2" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:538 (add_library):
+  add_library cannot create imported target "VTK::expat" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:545 (add_library):
+  add_library cannot create imported target "VTK::IOXMLParser" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:553 (add_library):
+  add_library cannot create imported target "VTK::IOXML" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+[0m[91mCMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:569 (add_library):
+  add_library cannot create imported target "VTK::ParallelDIY" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:578 (add_library):
+  add_library cannot create imported target "VTK::FiltersExtraction" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:586 (add_library):
+  add_library cannot create imported target "VTK::InteractionStyle" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:594 (add_library):
+  add_library cannot create imported target "VTK::RenderingAnnotation"
+  because another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:602 (add_library):
+  add_library cannot create imported target "VTK::RenderingVolume" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:610 (add_library):
+  add_library cannot create imported target "VTK::InteractionWidgets" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+[0m[91mCMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:626 (add_library):
+  add_library cannot create imported target "VTK::ViewsCore" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:634 (add_library):
+  add_library cannot create imported target "VTK::InfovisCore" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:642 (add_library):
+  add_library cannot create imported target "VTK::ChartsCore" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:650 (add_library):
+  add_library cannot create imported target "VTK::FiltersImaging" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:658 (add_library):
+  add_library cannot create imported target "VTK::InfovisLayout" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:666 (add_library):
+  add_library cannot create imported target "VTK::octree" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:673 (add_library):
+  add_library cannot create imported target "VTK::RenderingLabel" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:681 (add_library):
+  add_library cannot create imported target "VTK::ViewsInfovis" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+[0m[91mCMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:706 (add_library):
+  add_library cannot create imported target "VTK::ViewsContext2D" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:714 (add_library):
+  add_library cannot create imported target "VTK::TestingCore" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:722 (add_library):
+  add_library cannot create imported target "VTK::TestingRendering" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:730 (add_library):
+  add_library cannot create imported target "VTK::InteractionImage" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+[0m[91mCMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:786 (add_library):
+  add_library cannot create imported target "VTK::ImagingMath" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:794 (add_library):
+  add_library cannot create imported target "VTK::RenderingVolumeOpenGL2"
+  because another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:810 (add_library):
+  add_library cannot create imported target "VTK::RenderingLOD" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:818 (add_library):
+  add_library cannot create imported target "VTK::RenderingImage" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:826 (add_library):
+  add_library cannot create imported target "VTK::RenderingContextOpenGL2"
+  because another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:842 (add_library):
+  add_library cannot create imported target "VTK::hdf5" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+[0m[91mCMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:849 (add_library):
+  add_library cannot create imported target "VTK::IOVeraOut" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:857 (add_library):
+  add_library cannot create imported target "VTK::IOTecplotTable" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+[0m[91mCMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:865 (add_library):
+  add_library cannot create imported target "VTK::IOSegY" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:873 (add_library):
+  add_library cannot create imported target "VTK::IOParallelXML" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:881 (add_library):
+  add_library cannot create imported target "VTK::netcdf" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:888 (add_library):
+  add_library cannot create imported target "VTK::IONetCDF" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:904 (add_library):
+  add_library cannot create imported target "VTK::IOPLY" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:912 (add_library):
+  add_library cannot create imported target "VTK::IOMovie" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:920 (add_library):
+  add_library cannot create imported target "VTK::ogg" because another target
+  with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:927 (add_library):
+  add_library cannot create imported target "VTK::theora" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:934 (add_library):
+  add_library cannot create imported target "VTK::IOOggTheora" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:943 (add_library):
+  add_library cannot create imported target "VTK::jsoncpp" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:950 (add_library):
+  add_library cannot create imported target "VTK::IOGeometry" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:958 (add_library):
+  add_library cannot create imported target "VTK::pegtl" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:967 (add_library):
+  add_library cannot create imported target "VTK::IOMotionFX" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:975 (add_library):
+  add_library cannot create imported target "VTK::FiltersParallel" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:983 (add_library):
+  add_library cannot create imported target "VTK::IOParallel" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1007 (add_library):
+  add_library cannot create imported target "VTK::IOMINC" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+[0m[91mCMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1015 (add_library):
+  add_library cannot create imported target "VTK::IOLSDyna" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1023 (add_library):
+  add_library cannot create imported target "VTK::libxml2" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1030 (add_library):
+  add_library cannot create imported target "VTK::IOInfovis" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1038 (add_library):
+  add_library cannot create imported target "VTK::IOImport" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1046 (add_library):
+  add_library cannot create imported target "VTK::exodusII" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+[0m[91mCMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1055 (add_library):
+  add_library cannot create imported target "VTK::cgns" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+[0m[91mCMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1064 (add_library):
+  add_library cannot create imported target "VTK::ioss" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1072 (add_library):
+  add_library cannot create imported target "VTK::IOIOSS" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1080 (add_library):
+  add_library cannot create imported target "VTK::IOHDF" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1088 (add_library):
+  add_library cannot create imported target "VTK::IOVideo" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1096 (add_library):
+  add_library cannot create imported target "VTK::RenderingSceneGraph"
+  because another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+[0m[91mCMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1104 (add_library):
+  add_library cannot create imported target "VTK::RenderingVtkJS" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1112 (add_library):
+  add_library cannot create imported target "VTK::libharu" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1120 (add_library):
+  add_library cannot create imported target "VTK::IOExport" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1128 (add_library):
+  add_library cannot create imported target "VTK::IOExportPDF" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1136 (add_library):
+  add_library cannot create imported target "VTK::gl2ps" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1143 (add_library):
+  add_library cannot create imported target "VTK::RenderingGL2PSOpenGL2"
+  because another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1151 (add_library):
+  add_library cannot create imported target "VTK::IOExportGL2PS" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1159 (add_library):
+  add_library cannot create imported target "VTK::IOExodus" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1167 (add_library):
+  add_library cannot create imported target "VTK::IOEnSight" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1175 (add_library):
+  add_library cannot create imported target "VTK::IOCityGML" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1183 (add_library):
+  add_library cannot create imported target "VTK::DomainsChemistry" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+[0m[91mCMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1191 (add_library):
+  add_library cannot create imported target "VTK::IOChemistry" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1199 (add_library):
+  add_library cannot create imported target "VTK::IOCONVERGECFD" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1207 (add_library):
+  add_library cannot create imported target "VTK::IOCGNSReader" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1215 (add_library):
+  add_library cannot create imported target "VTK::IOAsynchronous" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1223 (add_library):
+  add_library cannot create imported target "VTK::FiltersAMR" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1231 (add_library):
+  add_library cannot create imported target "VTK::IOAMR" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1239 (add_library):
+  add_library cannot create imported target "VTK::ImagingStencil" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1247 (add_library):
+  add_library cannot create imported target "VTK::ImagingStatistics" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1255 (add_library):
+  add_library cannot create imported target "VTK::ImagingMorphological"
+  because another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1263 (add_library):
+  add_library cannot create imported target "VTK::ImagingFourier" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1271 (add_library):
+  add_library cannot create imported target "VTK::sqlite" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1278 (add_library):
+  add_library cannot create imported target "VTK::IOSQL" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1286 (add_library):
+  add_library cannot create imported target "VTK::libproj" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1293 (add_library):
+  add_library cannot create imported target "VTK::GeovisCore" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1301 (add_library):
+  add_library cannot create imported target "VTK::FiltersTopology" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1309 (add_library):
+  add_library cannot create imported target "VTK::FiltersSelection" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1317 (add_library):
+  add_library cannot create imported target "VTK::FiltersSMP" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1333 (add_library):
+  add_library cannot create imported target "VTK::FiltersProgrammable"
+  because another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1341 (add_library):
+  add_library cannot create imported target "VTK::FiltersPoints" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1349 (add_library):
+  add_library cannot create imported target "VTK::verdict" because another
+  target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1357 (add_library):
+  add_library cannot create imported target "VTK::FiltersVerdict" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1373 (add_library):
+  add_library cannot create imported target "VTK::FiltersParallelImaging"
+  because another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1389 (add_library):
+  add_library cannot create imported target "VTK::FiltersHyperTree" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1397 (add_library):
+  add_library cannot create imported target "VTK::FiltersGeneric" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1405 (add_library):
+  add_library cannot create imported target "VTK::FiltersFlowPaths" because
+  another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+CMake Error at /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/VTK-targets.cmake:1429 (add_library):
+  add_library cannot create imported target "VTK::DomainsChemistryOpenGL2"
+  because another target with the same name already exists.
+Call Stack (most recent call first):
+  /usr/lib/x86_64-linux-gnu/cmake/vtk-9.1/vtk-config.cmake:138 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/Modules/ITKVtkGlue.cmake:16 (find_package)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:76 (include)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:31 (itk_module_load)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKModuleAPI.cmake:129 (_itk_module_config_recurse)
+  /usr/lib/x86_64-linux-gnu/cmake/ITK-5.3/ITKConfig.cmake:89 (itk_module_config)
+  CMakeLists.txt:469 (find_package)
+
+
+[0m-- Found GLEW: /usr/lib/x86_64-linux-gnu/libGLEW.so
+-- Found OpenGL: /usr/lib/x86_64-linux-gnu/libOpenGL.so  found components: OpenGL GLX
+-- Found Python3: /usr/bin/python3.12 (found suitable version "3.12.3", minimum required is "3.12") found components: Interpreter Development.Module Development.Embed
+-- Found MPI_C: /usr/lib/x86_64-linux-gnu/libmpi.so (found version "3.1")
+-- Found MPI: TRUE (found version "3.1") found components: C
+-- Found HDF5: /usr/lib/x86_64-linux-gnu/hdf5/serial/libhdf5.so;/usr/lib/x86_64-linux-gnu/libcrypto.so;/usr/lib/x86_64-linux-gnu/libcurl.so;/usr/lib/x86_64-linux-gnu/libpthread.a;/usr/lib/x86_64-linux-gnu/libsz.so;/usr/lib/x86_64-linux-gnu/libz.so;/usr/lib/x86_64-linux-gnu/libdl.a;/usr/lib/x86_64-linux-gnu/libm.so (found version "1.10.10") found components: C HL
+-- Found NetCDF: /usr/include (found version "4.9.2")
+-- Found OGG: /usr/lib/x86_64-linux-gnu/libogg.so
+-- Found THEORA: /usr/lib/x86_64-linux-gnu/libtheora.so
+-- Found JsonCpp: /usr/lib/x86_64-linux-gnu/libjsoncpp.so (found suitable version "1.9.5", minimum required is "0.7.0")
+-- Found LibXml2: /usr/lib/x86_64-linux-gnu/libxml2.so (found version "2.9.14")
+-- Found GL2PS: /usr/lib/x86_64-linux-gnu/libgl2ps.so (found suitable version "1.4.2", minimum required is "1.4.2")
+-- Found PNG: /usr/lib/x86_64-linux-gnu/libpng.so (found version "1.6.43")
+-- Found SQLite3: /usr/include (found version "3.45.1")
+-- Found LibPROJ: /usr/lib/x86_64-linux-gnu/libproj.so (found version "9.4.0")
+-- Found Eigen3: /usr/include/eigen3 (found version "3.4.0")
+-- Found X11: /usr/include
+-- Found EXPAT: /usr/lib/x86_64-linux-gnu/libexpat.so (found version "2.6.1")
+-- Found double-conversion: /usr/lib/x86_64-linux-gnu/libdouble-conversion.so
+-- Found LZ4: /usr/lib/x86_64-linux-gnu/liblz4.so (found version "1.9.4")
+-- Found LZMA: /usr/lib/x86_64-linux-gnu/liblzma.so (found version "5.4.5")
+-- Found JPEG: /usr/lib/x86_64-linux-gnu/libjpeg.so (found version "80")
+-- Found TIFF: /usr/lib/x86_64-linux-gnu/libtiff.so (found version "4.5.1")
+-- Found Freetype: /usr/lib/x86_64-linux-gnu/libfreetype.so (found version "2.13.2")
+-- Found utf8cpp: /usr/include/utf8cpp
+-- For HOST_OS=undefined ITK_DIR=/usr/lib/x86_64-linux-gnu/cmake/ITK-5.3
+-- Compiling source under build tree /home/morphs/freesurfer/build
+[91mCMake Deprecation Warning at packages/dcm2niix/CMakeLists.txt:1 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+[0m[91mCMake Deprecation Warning at packages/dcm2niix/ucm.cmake:13 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+Call Stack (most recent call first):
+  packages/dcm2niix/CMakeLists.txt:6 (include)
+
+
+[0m-- Performing Test ARM_CRC
+-- Performing Test ARM_CRC - Failed
+-- Performing Test HAS_SSE2
+-- Performing Test HAS_SSE2 - Success
+[91m-- Build with JNIFTI support, USE_JNIFTI is ON
+[0m-- For HOST_OS=undefined dcm2niix ZLIB_IMPLEMENTATION=Miniz ZLIB_ROOT=
+[91mCMake Deprecation Warning at packages/pybind11/CMakeLists.txt:8 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+[0m-- pybind11 v2.10.0 dev1
+-- Performing Test HAS_FLTO
+-- Performing Test HAS_FLTO - Success
+[91mCMake Error at CMakeLists.txt:522 (symlink):
+  symlink Function invoked with incorrect arguments for function named:
+  symlink
+
+
+[0m-- For HOST_OS=undefined CMAKE_CXX_COMPILER_ID=GNU
+-- For HOST_OS=undefined CMAKE_CXX_FLAGS= -fopenmp -Wall -Wextra -Werror -Wno-sign-compare -Wno-unused-result -Wno-unused-parameter -Wno-unused-but-set-variable -fPIC -fdata-sections -ffunction-sections -Wl,--gc-sections
+[91mCMake Deprecation Warning at gems/CMakeLists.txt:1 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+[0m[91mCMake Warning at gems/CMakeLists.txt:48 (message):
+  compiling kvlGEMSCommon libraries with options -DUSING_STATIC_ARRAY
+  -DMAX_LOADINGS=100
+
+
+[0m-- CMAKE_CXX_COMPILER_ID=GNU
+-- ForHOST_OS=undefined DISTRIBUTE_FSPYTHON OFF AND INSTALL_PYTHON_DEPENDENCIES ON
+-- ForHOST_OS=undefined PKG_TARGET=--target=/home/morphs/freesurfer/install/python/packages
+-- For HOST_OS=undefined fspython pip set to use requirement arguments: -r /home/morphs/freesurfer/python/requirements.txt -r /home/morphs/freesurfer/python/requirements-extra.txt
+[91mCMake Warning (dev) at python/CMakeLists.txt:320 (add_custom_command):
+  Exactly one of PRE_BUILD, PRE_LINK, or POST_BUILD must be given.  Assuming
+  POST_BUILD to preserve backward compatibility.
+
+  Policy CMP0175 is not set: add_custom_command() rejects invalid arguments.
+  Run "cmake --help-policy CMP0175" for policy details.  Use the cmake_policy
+  command to set the policy and suppress this warning.
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+[0m-- For HOST_OS undefined CMAKE_EXE_LINKER_FLAGS= -fdata-sections -ffunction-sections -Wl,--gc-sections -Wl,-Map,ld_map.txt -Wl,--no-demangle -static-libgfortran
+-- Configuring incomplete, errors occurred!

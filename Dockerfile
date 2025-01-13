@@ -121,7 +121,7 @@ RUN export CMAKE_PREFIX_PATH="/usr/lib/x86_64-linux-gnu/cmake/Qt5"
 #     make -j$(nproc)
 
 RUN mkdir -p build && cd build && \
-    rm CMakeCache.txt || echo "" && \
+    rm -f CMakeCache.txt && \
     mkdir -p /home/${USERNAME}/freesurfer/install/python/bin && \
     CC=/usr/local/gcc-portable/bin/gcc \
     CXX=/usr/local/gcc-portable/bin/g++ \
@@ -131,7 +131,7 @@ RUN mkdir -p build && cd build && \
         -DCMAKE_CXX_STANDARD=17 \
         -DVTK_DIR=/usr/local/lib/cmake/vtk-9.4 \
         -DITK_DIR=/usr/local/lib/cmake/ITK-6.0 \
-        -DCMAKE_CXX_FLAGS="-I/usr/local/include/vtk-9.4 -Wno-error -Wno-error=pedantic -Wno-error=format-overflow -Wno-error=deprecated-declarations -fpermissive -Wno-deprecated -Wno-reorder" \
+        -DCMAKE_CXX_FLAGS="-I/usr/local/include/vtk-9.4 -Wno-error=format-overflow -Wno-error=deprecated-declarations -fpermissive -Wno-deprecated -Wno-reorder -Wno-self-assign-field -Wno-inconsistent-missing-override -Wno-for-loop-analysis -Wno-stringop-overflow" \
         -DCMAKE_C_FLAGS="-I/usr/local/include/vtk-9.4 -Wno-error" \
         .. && \
     make -j$(nproc) && \
@@ -139,4 +139,4 @@ RUN mkdir -p build && cd build && \
     cd /home/${USERNAME}/freesurfer && rm -rf build
 
 # Set the default command
-CMD ["/bin/bash"]
+ENTRYPOINT ["/bin/bash"]

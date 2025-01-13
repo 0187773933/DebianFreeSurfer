@@ -113,10 +113,30 @@ RUN apt-get install -y \
 RUN export CMAKE_PREFIX_PATH="/usr/lib/x86_64-linux-gnu/cmake/Qt5"
 
 # Build FreeSurfer
+# RUN mkdir -p build && cd build && \
+#     cmake .. -DCMAKE_BUILD_TYPE=Release \
+#         -DVTK_DIR=/usr/local/lib/cmake/vtk-9.4 \
+#         -DITK_DIR=/usr/local/lib/cmake/ITK-6.0 \
+#     -DCMAKE_PREFIX_PATH="/usr/local;/usr/lib/x86_64-linux-gnu/cmake" && \
+#     make -j$(nproc)
+
 RUN mkdir -p build && cd build && \
-    cmake .. -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_PREFIX_PATH="/usr/local;/usr/lib/x86_64-linux-gnu/cmake" && \
-    make -j$(nproc)
+    rm CMakeCache.txt || echo "" && \
+    mkdir -p /home/${USERNAME}/freesurfer/install/python/bin && \
+    CC=/usr/local/gcc-portable/bin/gcc \
+    CXX=/usr/local/gcc-portable/bin/g++ \
+    cmake \
+        -DCMAKE_INSTALL_PREFIX=/home/${USERNAME}/freesurfer/install \
+        -DMINIMAL=ON \
+        -DCMAKE_CXX_STANDARD=17 \
+        -DVTK_DIR=/usr/local/lib/cmake/vtk-9.4 \
+        -DITK_DIR=/usr/local/lib/cmake/ITK-6.0 \
+        -DCMAKE_CXX_FLAGS="-I/usr/local/include/vtk-9.4 -Wno-error -Wno-error=pedantic -Wno-error=format-overflow -Wno-error=deprecated-declarations -fpermissive -Wno-deprecated -Wno-reorder" \
+        -DCMAKE_C_FLAGS="-I/usr/local/include/vtk-9.4 -Wno-error" \
+        .. && \
+    make -j$(nproc) && \
+    make install && \
+    cd /home/${USERNAME}/freesurfer && rm -rf build
 
 # Set the default command
 CMD ["/bin/bash"]
